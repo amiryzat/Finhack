@@ -1,7 +1,7 @@
 import Header from './components/Header';
 import ActionGrid from './components/ActionGrid';
 import PromoCards from './components/PromoCards';
-import ServicesGrid from './components/ServicesGrid';
+import RecentTransactions from './components/RecentTransactions';
 import HighlightsCarousel from './components/HighlightsCarousel';
 import BottomNav from './components/BottomNav';
 
@@ -19,8 +19,8 @@ function App() {
         {/* Promo feature cards */}
         <PromoCards />
 
-        {/* Services grid */}
-        <ServicesGrid />
+        {/* Recent Transactions */}
+        <RecentTransactions />
 
         {/* Highlights carousel */}
         <HighlightsCarousel />
