@@ -1,4 +1,4 @@
-// v4.3
+// v5.3
 import { useState, useRef, useEffect } from 'react';
 
 // --- DATA ---
@@ -219,12 +219,12 @@ const navItems = [
     ),
   },
   {
-    id: 'wealth',
-    label: 'Wealth',
+    id: 'ai-help',
+    label: 'AI Help',
     active: false,
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m6 2v-2M4 9h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2V9zm3-4h10a2 2 0 012 2v2H5V7a2 2 0 012-2zM12 2v3" />
       </svg>
     ),
   },
@@ -352,21 +352,24 @@ const ActionGrid = () => {
   );
 };
 
-const PromoCards = ({ onLiteModeToggle }) => {
+const PromoCards = ({ onLiteModeToggle, onSavingsRouteToggle }) => {
   return (
     <div className="px-4 pt-6 pb-2">
       <div className="grid grid-cols-2 gap-3">
-        {/* GO+ Card */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer border border-border/50">
+        {/* Savings Goal Card */}
+        <div 
+          onClick={onSavingsRouteToggle}
+          className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer border border-border/50"
+        >
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-text-primary">GO+</h3>
-              <p className="text-[11px] text-text-secondary mt-0.5 leading-tight">Earn &gt;3.0%* returns</p>
+              <h3 className="text-sm font-bold text-text-primary">Savings Goal</h3>
+              <p className="text-[11px] text-text-secondary mt-0.5 leading-tight">Map your route</p>
             </div>
           </div>
         </div>
@@ -505,7 +508,7 @@ const HighlightsCarousel = () => {
   );
 };
 
-const BottomNav = () => {
+const BottomNav = ({ onAiHelpToggle }) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-border/50 z-50">
       <div className="max-w-[1200px] mx-auto flex items-center justify-around py-2 px-2">
@@ -513,6 +516,7 @@ const BottomNav = () => {
           <button
             key={item.id}
             id={`nav-${item.id}`}
+            onClick={item.id === 'ai-help' ? onAiHelpToggle : undefined}
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-colors duration-200 ${item.active
                 ? 'text-primary'
                 : 'text-text-secondary hover:text-primary'
@@ -537,6 +541,29 @@ const BottomNav = () => {
 function App() {
   const [isLiteMode, setIsLiteMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [isSavingsRouteOpen, setIsSavingsRouteOpen] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const [routeStep, setRouteStep] = useState('setup');
+  const [hasOverspent, setHasOverspent] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (isSavingsRouteOpen && routeStep === 'navigating') {
+      const timer = setTimeout(() => setProgress(10), 300);
+      return () => clearTimeout(timer);
+    } else {
+      setProgress(0);
+    }
+  }, [isSavingsRouteOpen, routeStep]);
+
+  const handleSimulateOverspend = () => {
+    setIsRecalculating(true);
+    setTimeout(() => {
+      setIsRecalculating(false);
+      setHasOverspent(true);
+    }, 2000);
+  };
 
   const handleLiteModeToggle = () => {
     setIsLoading(true);
@@ -551,6 +578,236 @@ function App() {
   }
 
   // --- RENDERS ---
+
+  if (isSavingsRouteOpen) {
+    return (
+      <div className="min-h-screen bg-primary-light flex flex-col max-w-[1200px] mx-auto pb-[env(safe-area-inset-bottom,0px)]">
+        {/* Header */}
+        <div className="flex items-center px-4 pt-6 pb-4 bg-primary shadow-sm z-20">
+          <button onClick={() => { setIsSavingsRouteOpen(false); setRouteStep('setup'); setHasOverspent(false); }} className="mr-3 text-white">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-xl font-bold text-white">Savings Goal</h1>
+        </div>
+
+        {isRecalculating && (
+          <div className="bg-slate-800 text-white p-4 flex items-center justify-center gap-3 animate-pulse z-10">
+            <svg className="w-6 h-6 animate-spin text-amber-400" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="font-medium text-sm">Overspend detected (RM 150). Adjusting forecast...</span>
+          </div>
+        )}
+
+        {!isRecalculating && hasOverspent && (
+          <div className="bg-amber-100 text-amber-900 p-4 border-b border-amber-200 z-10">
+            <span className="font-bold text-sm block mb-1">Forecast adjusted.</span>
+            <span className="text-sm">Target increased to RM 12/day to stay on track.</span>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto p-4 z-0">
+          {routeStep === 'setup' ? (
+            <div className="bg-white rounded-3xl p-6 shadow-sm mt-4">
+              <h2 className="text-2xl font-bold text-text-primary mb-6">What are we saving for?</h2>
+              
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Goal Name</label>
+                  <input type="text" placeholder="e.g. Japan Trip" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">Target Amount (RM)</label>
+                  <input type="number" placeholder="5000" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setRouteStep('navigating')}
+                className="w-full bg-primary text-white font-bold text-lg py-4 rounded-full hover:bg-primary-dark transition-colors active:scale-95 shadow-md"
+              >
+                Start Saving Goal
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6 mt-2">
+              {/* Dashboard Card with Progress */}
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-primary/10 relative overflow-hidden">
+                <div className="flex justify-between items-end mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-primary mb-1">Japan Trip</h2>
+                    <div className="flex items-center text-text-secondary text-sm">
+                      <svg className="w-4 h-4 mr-1 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Target: Dec 2026
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-text-secondary font-medium mb-1">Saved so far</div>
+                    <div className="text-2xl font-black text-text-primary">RM 500</div>
+                    <div className="text-xs text-text-secondary mt-1">of RM 5,000</div>
+                  </div>
+                </div>
+                
+                {/* Animated Progress Bar */}
+                <div className="w-full bg-gray-100 rounded-full h-3 mb-2 overflow-hidden relative">
+                  <div 
+                    className="bg-success h-full rounded-full transition-all duration-1000 ease-out" 
+                    style={{ width: `${progress}%` }} 
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-text-secondary font-medium px-1">
+                  <span>0%</span>
+                  <span>{progress}%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              {/* Milestones Section */}
+              <div className="bg-white rounded-3xl p-6 shadow-sm">
+                <h3 className="font-bold text-text-primary text-lg mb-4">Milestones</h3>
+                <div className="space-y-5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0 text-success">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-text-primary">Started Journey</h4>
+                      <p className="text-xs text-text-secondary mt-0.5">ASB Account Linked</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 opacity-100">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary border-2 border-primary/20 shadow-sm animate-pulse">
+                      <span className="font-bold text-sm">1K</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-primary">Next Milestone</h4>
+                      <p className="text-xs text-text-secondary mt-0.5">Save <span className="font-bold text-text-primary">RM 10/day</span> to reach by August</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 opacity-40">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-500">
+                      <span className="font-bold text-sm">5K</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-text-primary">Goal Reached!</h4>
+                      <p className="text-xs text-text-secondary mt-0.5">Japan Trip Unlocked</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Recommendations */}
+              <div className="space-y-3">
+                <h3 className="font-bold text-text-secondary px-2 text-sm uppercase tracking-wider">AI Recommendations</h3>
+                
+                <div className="bg-white rounded-2xl p-4 shadow-sm flex gap-3 border-l-4 border-success">
+                  <div className="bg-green-50 p-2 rounded-xl flex-shrink-0 self-start">
+                    <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-text-primary text-sm">Aggressive Growth</h4>
+                    <p className="text-xs text-text-secondary mt-1">ASB Financing + RM500/month.</p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl p-4 shadow-sm flex gap-3 border-l-4 border-blue-400">
+                  <div className="bg-blue-50 p-2 rounded-xl flex-shrink-0 self-start">
+                    <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-text-primary text-sm">Steady & Safe</h4>
+                    <p className="text-xs text-text-secondary mt-1">Low-Risk Savings Account + RM200/month.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Overspend Simulator */}
+              <button 
+                onClick={handleSimulateOverspend}
+                disabled={isRecalculating || hasOverspent}
+                className={`w-full mt-4 py-4 rounded-2xl font-bold text-sm transition-all shadow-sm ${isRecalculating || hasOverspent ? 'bg-gray-200 text-gray-400' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 active:scale-95'}`}
+              >
+                Simulate Overspend
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (isAiChatOpen) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col max-w-[1200px] mx-auto">
+        {/* Header */}
+        <div className="flex items-center px-4 pt-6 pb-4 bg-primary shadow-sm border-b border-primary/20">
+          <button onClick={() => setIsAiChatOpen(false)} className="mr-3 text-white">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-xl font-bold text-white">AI Security & Help</h1>
+        </div>
+
+        {/* Chat History */}
+        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
+          <div className="flex justify-end">
+            <div className="bg-primary text-white p-3 rounded-2xl rounded-tr-sm max-w-[80%]">
+              <p className="text-base">Transfer RM 100 to John Cena</p>
+            </div>
+          </div>
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-200 text-text-primary p-3 rounded-2xl rounded-tl-sm max-w-[80%] shadow-sm">
+              <p className="text-base">I can help with that. Please confirm the transfer of RM 100 to John Cena.</p>
+            </div>
+          </div>
+          <div className="flex justify-start">
+            <div className="bg-red-50 border border-red-200 text-red-900 p-3 rounded-2xl rounded-tl-sm max-w-[80%] shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="font-bold text-red-700">Security Alert</span>
+              </div>
+              <p className="text-base">I analyzed the image. That account number has been flagged for scams. Do not proceed.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="border-t border-gray-200 bg-white p-4 pb-8 flex items-center gap-3">
+          <button className="text-text-secondary hover:text-primary transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+          </button>
+          <button className="text-text-secondary hover:text-primary transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          <div className="flex-1">
+            <input type="text" placeholder="Message AI Assistant..." className="w-full bg-gray-100 rounded-full px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <button className="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors shadow-sm">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -656,7 +913,7 @@ function App() {
           <div className="h-24" />
         </div>
 
-        <BottomNav />
+        <BottomNav onAiHelpToggle={() => setIsAiChatOpen(true)} />
       </div>
     );
   }
@@ -666,12 +923,15 @@ function App() {
       <div className="max-w-[1200px] mx-auto relative">
         <Header />
         <ActionGrid />
-        <PromoCards onLiteModeToggle={handleLiteModeToggle} />
+        <PromoCards 
+          onLiteModeToggle={handleLiteModeToggle} 
+          onSavingsRouteToggle={() => setIsSavingsRouteOpen(true)}
+        />
         <ServicesGrid />
         <HighlightsCarousel />
         <div className="h-20" />
       </div>
-      <BottomNav />
+      <BottomNav onAiHelpToggle={() => setIsAiChatOpen(true)} />
     </div>
   );
 }
