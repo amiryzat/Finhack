@@ -1,8 +1,6 @@
 import Header from './components/Header';
 import ActionGrid from './components/ActionGrid';
-import PromoCards from './components/PromoCards';
 import RecentTransactions from './components/RecentTransactions';
-import HighlightsCarousel from './components/HighlightsCarousel';
 import BottomNav from './components/BottomNav';
 
 function App() {
@@ -16,14 +14,9 @@ function App() {
         {/* Quick Actions floating card */}
         <ActionGrid />
 
-        {/* Promo feature cards */}
-        <PromoCards />
-
         {/* Recent Transactions */}
         <RecentTransactions />
 
-        {/* Highlights carousel */}
-        <HighlightsCarousel />
 
         {/* Bottom padding for nav */}
         <div className="h-20" />
